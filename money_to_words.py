@@ -212,10 +212,9 @@ def triple_digit_num_to_words(number, last_3_digits=False):
         was_just_zeros = False
         alphabetical_number += NUMS_SINGLE_DIGIT_DICT[number[2]]
 
-    if alphabetical_number.endswith("and "):# or alphabetical_number.startswith("and "):
-        # alphabetical_number = alphabetical_number.lstrip("and ")
+    if alphabetical_number.endswith("and "):
         alphabetical_number = alphabetical_number.rstrip("nd ")
-        # this seemingly redundant double use of the rstrip function is to avoid the
+        # this admittedly untidy and seemingly redundant double use of the rstrip function is to avoid the
         # 'd' in hundred from being removed as well as the 'and'.
         alphabetical_number = alphabetical_number.rstrip(" a")
 
@@ -278,8 +277,7 @@ def words_to_number(words):
                 current_number, word_index = calculate_number_addition(WORDS_SINGLE_DIGIT_DICT, current_number, words, word_index)
 
                 if words[word_index] == "hundred":
-                    current_number *= 100
-                    word_index += 1
+                    current_number, word_index = calculate_number_multiplication({"hundred":100}, current_number, words, word_index)
 
                     if words[word_index] == "and":
                         word_index += 1 
@@ -414,7 +412,9 @@ def words_to_number(words):
 
         elif "cent" in words or "cents" in words:
             error_detected = True
-                
+
+    # checks if there are words after 'dollar' that do not make sense, or if there are grammatically incorrect 
+    # words preceding 'cents'
     if ("dollars" in words and ("cents" not in words and "cent" not in words) and words[-1] != "dollars") or \
         ("dollar" in words and ("cents" not in words and "cent" not in words) and words[-1] != "dollar") or \
         error_detected:
@@ -448,4 +448,7 @@ def calculate_number_multiplication(dictionary, number, words, word_index):
     return number, word_index + 1
 
 arguments = sys.argv
-main(arguments[1:])
+if len(arguments) > 1:
+    main(arguments[1:])
+else:
+    sys.exit("Please enter a number after 'money_to_words.py' for the program to translate.")
