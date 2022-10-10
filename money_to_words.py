@@ -10,7 +10,7 @@
     the number or word you would like to translate.
     e.g. > python3 money_to_words.py "three hundred"
 
-    Last modified on 10/10/2022
+    Last modified on 11/10/2022
 """
 
 import sys
@@ -223,9 +223,15 @@ def triple_digit_num_to_words(number, last_3_digits=False):
 
 def cents_number_to_words(cents):
     """This function deals with any cents left over in the number"""
+
+    rounded = False
     while len(cents) > 2:
         # the program rounds down to the nearest cent for simplicity
+        rounded = True
         cents.pop()
+    
+    if rounded:
+        print("Your input has been rounded down to the nearest cent.")
 
     if len(cents) == 1:
         cents.append("0")
