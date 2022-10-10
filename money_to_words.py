@@ -10,8 +10,7 @@
     the number or word you would like to translate.
     e.g. > python3 money_to_words.py "three hundred"
 
-    Last modified on 09/10/2022
-
+    Last modified on 10/10/2022
 """
 
 import sys
@@ -22,8 +21,7 @@ NUMS_SINGLE_DIGIT_DICT = {"0":"zero ", "1":"one ", "2":"two ", "3":"three ", "4"
                           "5":"five ", "6":"six ", "7":"seven ", "8":"eight ", "9":"nine "}
 NUMS_TEENS_DICT = {"10":"ten ", "11":"eleven ", "12":"twelve ", "13":"thirteen ", "14":"fourteen ",
                    "15":"fifteen ", "16":"sixteen ", "17":"seventeen ", "18":"eighteen ", "19":"nineteen "}
-# the value ten in the following dict might not get used. Same in the words dict
-NUMS_DOUBLE_DIGIT_DICT = {"0":"", "1":"ten ", "2":"twenty ", "3":"thirty ", "4":"forty ", "5":"fifty ", 
+NUMS_DOUBLE_DIGIT_DICT = {"0":"", "2":"twenty ", "3":"thirty ", "4":"forty ", "5":"fifty ", 
                           "6":"sixty ", "7":"seventy ", "8":"eighty ", "9":"ninety "}
 NUMS_LARGE_NUMS_DICT = {2:" thousand, ", 3:" million, ", 4:" billion, "}
 
@@ -31,7 +29,7 @@ WORDS_SINGLE_DIGIT_DICT = {"zero":0, "one":1, "two":2, "three":3, "four":4,
                           "five":5, "six":6, "seven":7, "eight":8, "nine":9}
 WORDS_TEENS_DICT = {"ten":10, "eleven":11, "twelve":12, "thirteen":13, "fourteen":14,
                    "fifteen":15, "sixteen":16, "seventeen":17, "eighteen":18, "nineteen":19}
-WORDS_DOUBLE_DIGIT_DICT = {"ten":10, "twenty":20, "thirty":30, "forty":40, "fifty":50, 
+WORDS_DOUBLE_DIGIT_DICT = {"twenty":20, "thirty":30, "forty":40, "fifty":50, 
                           "sixty":60, "seventy":70, "eighty":80, "ninety":90}
 WORDS_LARGE_NUMS_DICT = {"thousand":10**3, "million":10**6, "billion":10**9}
 WORDS_KEYWORDS_LIST = ["dollar", "dollars", "cent", "cents"]
@@ -88,14 +86,6 @@ def is_in_numerical_form(input):
     the input is a number, the function returns true. Alternatively, if it is a string, it is 
     assumed to be in alphabetical form and the function returns False.
     """
-
-    # if type(input[0]) == int or type(input[0]) == float:
-    #     return True, input[0], None
-    # elif type(input[0]) == str:
-    #     return False, input[0], None
-    # else:
-    #     return None, input[0], "ERROR: Please enter a valid number (in numerical or" + \
-    #                   " alphabetical form) as your input.\n"
 
     try:
         input = float(input)
@@ -258,8 +248,6 @@ def words_to_number(words):
     attempts to translate into them into numerical form. If the list of strings
     is not a valid number, appropriate errors are presented."""
 
-    # print("Words to number function called on", words)
-
     # check that the input is valid
     for word in words:
         word = word.replace(".", "")
@@ -275,7 +263,6 @@ def words_to_number(words):
                      "'-' between words.\n\nThe unrecognised word was: {}\n".format(word))
     
     # parse the input and translate
-
     final_number = 0
     word_index = 0
     error_detected = False
@@ -288,65 +275,81 @@ def words_to_number(words):
                 word_index += 1
 
             elif words[word_index] in WORDS_SINGLE_DIGIT_DICT:
-                current_number = WORDS_SINGLE_DIGIT_DICT[words[word_index]]
-                word_index += 1
+                current_number, word_index = calculate_number_addition(WORDS_SINGLE_DIGIT_DICT, current_number, words, word_index)
 
                 if words[word_index] == "hundred":
                     current_number *= 100
                     word_index += 1
 
+                    if words[word_index] == "and":
+                        word_index += 1 
+
+                        if words[word_index] == "and":
+                            word_index += 1
+
+                        elif words[word_index] in WORDS_TEENS_DICT:
+                            current_number, word_index = calculate_number_addition(WORDS_TEENS_DICT, current_number, words, word_index)
+                        
+                        else:
+                            if words[word_index] in WORDS_DOUBLE_DIGIT_DICT:
+                                current_number, word_index = calculate_number_addition(WORDS_DOUBLE_DIGIT_DICT, current_number, words, word_index)
+
+                                if words[word_index] in WORDS_SINGLE_DIGIT_DICT:
+                                    current_number, word_index = calculate_number_addition(WORDS_SINGLE_DIGIT_DICT, current_number, words, word_index)
+
+                            elif words[word_index] in WORDS_SINGLE_DIGIT_DICT:
+                                current_number, word_index = calculate_number_addition(WORDS_SINGLE_DIGIT_DICT, current_number, words, word_index)
+                        
+                            else:
+                                error_detected = True
+                                error_word = word_index
+                                word_index = len(words)
+
                     if words[word_index] in WORDS_LARGE_NUMS_DICT:
-                        current_number *= WORDS_LARGE_NUMS_DICT[words[word_index]]
-                        word_index += 1
+                        current_number, word_index = calculate_number_multiplication(WORDS_LARGE_NUMS_DICT, current_number, words, word_index)
                 
                 elif words[word_index] in WORDS_LARGE_NUMS_DICT:
-                    current_number *= WORDS_LARGE_NUMS_DICT[words[word_index]]
-                    word_index += 1
+                    current_number, word_index = calculate_number_multiplication(WORDS_LARGE_NUMS_DICT, current_number, words, word_index)
 
                 elif words[word_index] == "and" or words[word_index] in WORDS_KEYWORDS_LIST:
                     word_index = len(words)
                 
                 else:
                     error_detected = True
-                    eror_word = word_index
+                    error_word = word_index
                     word_index = len(words)
 
                     
             elif words[word_index] in WORDS_TEENS_DICT:
-                current_number = WORDS_TEENS_DICT[words[word_index]]
-                word_index += 1
+                current_number, word_index = calculate_number_addition(WORDS_TEENS_DICT, current_number, words, word_index)
 
                 if words[word_index] in WORDS_LARGE_NUMS_DICT:
-                    current_number *= WORDS_LARGE_NUMS_DICT[words[word_index]]
-                    word_index += 1
+                    current_number, word_index = calculate_number_multiplication(WORDS_LARGE_NUMS_DICT, current_number, words, word_index)
 
                 elif words[word_index] in WORDS_KEYWORDS_LIST:
                     word_index = len(words)
 
                 else:
                     error_detected = True
-                    eror_word = word_index
+                    error_word = word_index
                     word_index = len(words)
 
 
             elif words[word_index] in WORDS_DOUBLE_DIGIT_DICT:
-                current_number = WORDS_DOUBLE_DIGIT_DICT[words[word_index]]
-                word_index += 1
+                current_number, word_index = calculate_number_addition(WORDS_DOUBLE_DIGIT_DICT, current_number, words, word_index)
 
                 if words[word_index] in WORDS_SINGLE_DIGIT_DICT:
-                    current_number += WORDS_SINGLE_DIGIT_DICT[words[word_index]]
-                    word_index += 1
+                    current_number, word_index = calculate_number_addition(WORDS_SINGLE_DIGIT_DICT, current_number, words, word_index)
 
                 if words[word_index] in WORDS_LARGE_NUMS_DICT:
-                    current_number *= WORDS_LARGE_NUMS_DICT[words[word_index]]
-                    word_index += 1
+                    current_number, word_index = calculate_number_multiplication(WORDS_LARGE_NUMS_DICT, current_number, words, word_index)
                 
                 elif words[word_index] in WORDS_KEYWORDS_LIST:
                     word_index = len(words)
 
                 else:
                     error_detected = True
-                    eror_word = word_index
+                    error_word = word_index
                     word_index = len(words)
             
             elif words[word_index] in WORDS_KEYWORDS_LIST:
@@ -354,7 +357,7 @@ def words_to_number(words):
 
             else:
                 error_detected = True
-                eror_word = word_index
+                error_word = word_index
                 word_index = len(words)
 
         except IndexError:                
@@ -368,21 +371,18 @@ def words_to_number(words):
                     "Please check that the input is grammatically correct and is written in " + \
                     "the formal way, for example:\n\nWrite 'one thousand, two hundred and four dollars'\n" + \
                     "Rather than 'twelve hundred and four dollars'\n\n" + \
-                    "The word that resulted in an error was: '{}'".format(words[eror_word]))
+                    "The word that resulted in an error was: '{}'".format(words[error_word]))
     
-    elif ("dollars" in words and ("cents" not in words and "cent" not in words) and words[-1] != "dollars") or \
-        ("dollar" in words and ("cents" not in words and "cent" not in words) and words[-1] != "dollar"):
-        sys.exit("ERROR: There appears to be a grammatical error appearing after the word 'dollar(s)'\n" + \
-                 "If you wish to include cents, please end your sentence with 'cents' or 'cent'")
-
     else:
         if words[-1] == "cents" or words[-1] == "cent":
             word_index = -1
+
             while words[word_index] != "dollars" and words[word_index] != "dollar" and len(words) > 3:
                 word_index -= 1
                 if word_index == -(len(words)):
-                    sys.exit("ERROR: The word '{}' is included but not the word ".format(words[-1]) + \
-                        "'dollars' or 'dollar'")
+                    sys.exit("ERROR: The word '{}' is included but not ".format(words[-1]) + \
+                        "the word 'dollars' or 'dollar' and the grammar appears to be " + \
+                        "incorrect. Please review the input.")
             
             if "dollars" not in words and "dollar" not in words:
                 final_number = 0
@@ -391,38 +391,61 @@ def words_to_number(words):
 
             while word_index < -1:
                 current_number = 0
+                
 
                 if words[word_index] == "and":
                     word_index += 1
 
                 elif words[word_index] in WORDS_TEENS_DICT:
-                    current_number += WORDS_TEENS_DICT[words[word_index]]
-                    word_index += 1
+                    current_number, word_index = calculate_number_addition(WORDS_TEENS_DICT, current_number, words, word_index)
                 
                 else:
                     if words[word_index] in WORDS_DOUBLE_DIGIT_DICT:
-                        current_number = WORDS_DOUBLE_DIGIT_DICT[words[word_index]]
-                        word_index += 1
+                        current_number, word_index = calculate_number_addition(WORDS_DOUBLE_DIGIT_DICT, current_number, words, word_index)
 
                     if words[word_index] in WORDS_SINGLE_DIGIT_DICT:
-                        current_number += WORDS_SINGLE_DIGIT_DICT[words[word_index]]
-                        word_index += 1
+                        current_number, word_index = calculate_number_addition(WORDS_SINGLE_DIGIT_DICT, current_number, words, word_index)
                 
                     else:
+                        error_detected = True
                         word_index = 0
             
             final_number += current_number*(10**-2)
+
+        elif "cent" in words or "cents" in words:
+            error_detected = True
                 
+    if ("dollars" in words and ("cents" not in words and "cent" not in words) and words[-1] != "dollars") or \
+        ("dollar" in words and ("cents" not in words and "cent" not in words) and words[-1] != "dollar") or \
+        error_detected:
+        sys.exit("ERROR: There appears to be a grammatical error appearing after the word 'dollar(s)'\n" + \
+                 "If you wish to include cents, please end your sentence with 'cents' or 'cent'")
+
 
     return "${:.2f}".format(final_number)
 
 
+def calculate_number_addition(dictionary, number, words, word_index):
+    """
+    This function computes a new number to be used while parsing the user's 
+    alphabetical input of a number. It uses the given dictionary to find the
+    appropriate number to add, and increments the word_index, returning all 
+    updated variables"""
+
+    number += dictionary[words[word_index]]
+
+    return number, word_index + 1
+
+def calculate_number_multiplication(dictionary, number, words, word_index):
+    """
+    This function computes a new number to be used while parsing the user's 
+    alphabetical input of a number. It uses the given dictionary to find the
+    appropriate number to add, and increments the word_index, returning all 
+    updated variables"""
+
+    number *= dictionary[words[word_index]]
+
+    return number, word_index + 1
+
 arguments = sys.argv
 main(arguments[1:])
-
-# NOTES:
-#
-# negatives
-# 
-# for words to number:
-# deal with when user inputs cents then dollars
